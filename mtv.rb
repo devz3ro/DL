@@ -2,6 +2,24 @@
 
 require 'fileutils'
 
+if Dir.entries('.').grep(/mtv$/).include?("mtv") == true
+        puts "\nI found an existing mtv directory, entering it\n\n"
+        FileUtils.cd('mtv')
+else
+        puts "I did not find an existing mtv directory, creating one and entering it\n\n"
+        FileUtils.mkdir('mtv')
+        FileUtils.cd('mtv')
+end
+
+puts "Completed files will be stored in #{FileUtils.pwd()}\n\n"
+
+puts "Please enter your mtv url:"
+mtv_url = gets.chomp
+mtv_list = mtv_url.split(" ")
+
+mtv_list.each do |url|
+system "youtube-dl #{url}"
+
 mtv_act_listing = Dir.each_child('.').grep(/\.mp4$/).sort_by! { |c| File.mtime(c) }
 mtv_act_length = mtv_act_listing.length
 
@@ -32,3 +50,4 @@ system "ffmpeg -i \"concat:#{concat}\" -c copy -bsf:a aac_adtstoasc -movflags fa
 
 FileUtils.rm Dir.glob('*.mp4')
 FileUtils.rm Dir.glob('*.ts')
+end
