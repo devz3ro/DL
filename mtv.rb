@@ -13,7 +13,7 @@ end
 
 puts "Completed files will be stored in #{FileUtils.pwd()}\n\n"
 
-puts "Please enter your mtv url(s), separated by spaces:"
+puts "Please enter your mtv.com url(s), separated by spaces:"
 mtv_url = gets.chomp
 mtv_list = mtv_url.split(" ")
 
