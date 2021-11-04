@@ -1,7 +1,7 @@
 #!/usr/local/bin/ruby
 require 'fileutils'
 
-if Dir.entries('.').grep(/^mtv$/).include?("mtv") == true
+if Dir.entries('.').grep(/^mtv$/).include?("mtv")
         puts "\nI found an existing mtv directory, entering it\n\n"
         FileUtils.cd('mtv')
 else
