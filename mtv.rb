@@ -2,10 +2,10 @@
 require 'fileutils'
 
 if Dir.entries('.').grep(/^mtv-dl$/).include?("mtv-dl")
-        puts "\nI found an existing mtv directory, entering it\n\n"
+        puts "\nI found an existing mtv-dl directory, entering it\n\n"
         FileUtils.cd('mtv-dl')
 else
-        puts "I did not find an existing mtv directory, creating one and entering it\n\n"
+        puts "I did not find an existing mtv-dl directory, creating one and entering it\n\n"
         FileUtils.mkdir('mtv-dl')
         FileUtils.cd('mtv-dl')
 end
