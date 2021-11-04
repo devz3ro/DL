@@ -1,6 +1,6 @@
 # youtube-dl MTV Act Concatenate
 
-Tested on Fedora 34 & macOS Catalina + Big Sur.
+Tested on Fedora 34 & macOS Catalina + Big Sur + Monterey.
 
 Prerequisites:
 
