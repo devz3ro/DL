@@ -1,13 +1,13 @@
 #!/usr/local/bin/ruby
 require 'fileutils'
 
-if Dir.entries('.').grep(/^mtv$/).include?("mtv")
+if Dir.entries('.').grep(/^mtv-dl$/).include?("mtv-dl")
         puts "\nI found an existing mtv directory, entering it\n\n"
-        FileUtils.cd('mtv')
+        FileUtils.cd('mtv-dl')
 else
         puts "I did not find an existing mtv directory, creating one and entering it\n\n"
-        FileUtils.mkdir('mtv')
-        FileUtils.cd('mtv')
+        FileUtils.mkdir('mtv-dl')
+        FileUtils.cd('mtv-dl')
 end
 
 puts "Completed files will be stored in #{FileUtils.pwd()}\n\n"
