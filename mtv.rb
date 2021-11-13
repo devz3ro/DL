@@ -17,7 +17,7 @@ mtv_url = gets.strip
 mtv_list = mtv_url.split(" ")
 
 mtv_list.each do |url|
-        system "youtube-dl #{url}"
+        system "yt-dlp #{url}"
         mtv_act_listing = Dir.each_child('.').grep(/\.mp4$/).sort_by! { |c| File.mtime(c) }
         mtv_act_length = mtv_act_listing.length
         intermediate_file = 1
