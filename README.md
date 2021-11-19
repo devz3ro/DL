@@ -12,6 +12,6 @@ How to use:
 
 Go to mtv.com and go copy the url of a desired show / episode.
 
-Run this ruby script ***ruby mtv.rb*** and then paste in the url when it asks.
+Run this ruby script ***ruby mtv_grab.rb*** and then paste in the url when it asks.
 
 The program will handle the rest. Enjoy.
