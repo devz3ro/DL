@@ -4,9 +4,9 @@ Tested on Fedora 34 & macOS Catalina + Big Sur + Monterey.
 
 Prerequisites:
 
-yt-dlp and ffmpeg (dnf install / brew install)
+ruby, yt-dlp and ffmpeg (dnf install / brew install)
 
-
+ruby fileutils gem (gem install fileutils)
 
 How to use:
 
