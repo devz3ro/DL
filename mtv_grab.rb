@@ -17,7 +17,7 @@ mtv_url = gets.strip
 mtv_list = mtv_url.split(" ")
 
 mtv_list.each do |url|
-        system "yt-dlp #{url}"
+        system "yt-dlp --verbose #{url}"
         mtv_act_listing = Dir.each_child('.').grep(/\.mp4$/).sort_by! { |c| File.mtime(c) }
         intermediate_file = 1
         ts_file = []
