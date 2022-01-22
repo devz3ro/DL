@@ -18,7 +18,7 @@ mtv_list = mtv_url.split(" ")
 
 mtv_list.each do |url|
         system "yt-dlp --verbose #{url}"
-        mtv_act_listing = Dir.each_child('.').grep(/\.mp4$/).sort_by { |item| item.to_s.split(/(\d+)/).map { |e| [e.to_i, e] } }
+        mtv_act_listing = Dir.each_child('.').grep(/\.mp4$/).sort_by { |video| video.to_s.split(/(\d+)/).map { |act| [act.to_i, act] } }
         intermediate_file = 1
         ts_file = []
         ts_list = ""
