@@ -16,18 +16,28 @@ http://127.0.0.1:8888/proxy/m3u?url=https%3A%2F%2Fgoogle.com%2F
 Example:
 
 cat test.m3u8
+
 #EXTM3U
+
 #EXTINF:-1 channel-number="1" tvg-id="" tvg-name="TEST" tvg-logo="" group-title="TEST",TEST
+
 https://google.com/
 
 python3 encode_playlist.py test.m3u8
+
 Successfully processed 'test.m3u8' (3 lines read).
+
 1 URLs/URIs were modified.
-Output saved to 'test_encoded.m3u8'
+
+Output saved to 'test_encoded.m3u8'\n
+
 
 cat test_encoded.m3u8
+
 #EXTM3U
+
 #EXTINF:-1 channel-number="1" tvg-id="" tvg-name="TEST" tvg-logo="" group-title="TEST",TEST
+
 http://127.0.0.1:8888/proxy/m3u?url=https%3A%2F%2Fgoogle.com%2F
 
 Run app:
