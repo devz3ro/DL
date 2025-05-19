@@ -30,4 +30,8 @@ Output saved to 'test_encoded.m3u8'`
 #EXTINF:-1 channel-number="1" tvg-id="" tvg-name="TEST" tvg-logo="" group-title="TEST",TEST
 http://127.0.0.1:8888/proxy/m3u?url=https%3A%2F%2Fgoogle.com%2F`
 
+Run app:
+
+gunicorn --workers 4 --bind 0.0.0.0:8888 dl:dl
+
 enjoy.
