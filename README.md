@@ -4,12 +4,16 @@ supply correct headers in headers.json file (referrer and origin)
 
 2 separate scripts to encode urls:
 
+<br>
+
 1. encode_url.py will do a single url
 
 Example:
 
 python3 encode_url.py https://google.com/
 http://127.0.0.1:8888/proxy/m3u?url=https%3A%2F%2Fgoogle.com%2F
+
+<br>
 
 2. encode_playlist.py will encode entire playlist
 
