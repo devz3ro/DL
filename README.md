@@ -1,23 +1,23 @@
+install prerequisites:  
+
 pip3 install Flask requests beautifulsoup4 gunicorn
 
 supply correct headers in headers.json file (referrer and origin)
 
-2 separate scripts to encode urls:
+(2 separate scripts provided to encode urls)
 
-<br>
-
-1. encode_url.py will do a single url
+1. encode_url.py will encode a single url
 
 Example:
 
 python3 encode_url.py https://google.com/  
 http://127.0.0.1:8888/proxy/m3u?url=https%3A%2F%2Fgoogle.com%2F
 
-2. encode_playlist.py will encode entire playlist
+2. encode_playlist.py will encode an entire playlist
 
 Example:
 
-cat test.m3u8 (original file)  
+cat test.m3u8 
 #EXTM3U  
 #EXTINF:-1 channel-number="1" tvg-id="" tvg-name="TEST" tvg-logo="" group-title="TEST",TEST  
 https://google.com/
