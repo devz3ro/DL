@@ -17,7 +17,7 @@ http://127.0.0.1:8888/proxy/m3u?url=https%3A%2F%2Fgoogle.com%2F
 
 Example:
 
-cat test.m3u8 
+cat test.m3u8  
 #EXTM3U  
 #EXTINF:-1 channel-number="1" tvg-id="" tvg-name="TEST" tvg-logo="" group-title="TEST",TEST  
 https://google.com/
