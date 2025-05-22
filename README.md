@@ -20,7 +20,7 @@ Example:
 python3 encode_url.py https://google.com/  
 http://127.0.0.1:8888/proxy/m3u?url=eJzLKCkpKLbS10_Pz0_PSdVLzs_VBwBHIwbl
 
-OR  
+OR (for non-dl playlists)  
 
 python3 encode_url.py https://google.com/ --h_referer "https://google.com/" --h_origin "https://foo.bar" --h_user_agent "MyCustomAgent/1.0"  
 http://127.0.0.1:8888/proxy/m3u?url=eJzLKCkpKLbS10_Pz0_PSdVLzs_VBwBHIwbl&h_referer=eJzLKCkpKLbS10_Pz0_PSdVLzs_VBwBHIwbl&h_origin=eJzLKCkpKLbS10_Lz9dLSiwCACyYBXM&h_User-Agent=eJzzrXQuLS7Jz3VMT80r0TfUMwAAOlYF7w  
@@ -46,7 +46,7 @@ cat test_encoded.m3u8
 #EXTINF:-1 channel-number="1" tvg-id="" tvg-name="TEST" tvg-logo="" group-title="TEST",TEST  
 http://127.0.0.1:8888/proxy/m3u?url=eJzLKCkpKLbS10_Pz0_PSdVLzs_VBwBHIwbl  
 
-OR  
+OR (for non-dl playlists)  
 
 python3 encode_playlist.py test.m3u8 --h_referer "https://google.com/" --h_origin "https://foo.bar" --h_user_agent "MyCustomAgent/1.0"  
 Successfully processed 'test.m3u8' (3 lines read).  
