@@ -22,7 +22,7 @@ http://127.0.0.1:8888/proxy/m3u?url=eJzLKCkpKLbS10_Pz0_PSdVLzs_VBwBHIwbl&h_refer
 
 -----------------------------------------------------------------------------------------------------------------------------------------------  
 
-2. encode_playlist.py will encode an entire playlist
+2. encode_playlist.py will encode an entire playlist (now with optional headers)  
 
 Example:  
 
