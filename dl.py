@@ -35,6 +35,9 @@ def decode_param_value(encoded_value_str):
     except Exception as e:
         raise ValueError(f"Failed to decode/decompress parameter value: {e}")
 
+def encode_uri_for_sub_request(uri_string):
+    encoded_bytes = zlib.compress(uri_string.encode('utf-8'))
+    return base64.urlsafe_b64encode(encoded_bytes).decode('utf-8').rstrip('=')
 
 def load_global_headers():
     global GLOBAL_HEADERS
@@ -109,6 +112,27 @@ def detect_m3u_type_for_h_mode(content):
         return "m3u8"
     return "unknown"
 
+def _process_h_mode_m3u8_content(m3u_content_str, base_url_for_internal_paths, encoded_h_params_query_string):
+    modified_m3u8_lines = []
+    for line_content in m3u_content_str.splitlines():
+        line_content = line_content.strip()
+        if line_content.startswith("#EXT-X-KEY") and 'URI="' in line_content:
+            key_match = re.search(r'URI="([^"]+)"', line_content)
+            if key_match:
+                original_key_uri_in_manifest = key_match.group(1)
+                absolute_key_uri = urljoin(base_url_for_internal_paths, original_key_uri_in_manifest)
+                encoded_absolute_key_uri = encode_uri_for_sub_request(absolute_key_uri)
+                proxied_key_uri = f"/h_mode/key?url={encoded_absolute_key_uri}&{encoded_h_params_query_string}"
+                line_content = line_content.replace(original_key_uri_in_manifest, proxied_key_uri)
+        elif line_content and not line_content.startswith("#"):
+            original_resource_uri_in_manifest = line_content
+            absolute_resource_uri = urljoin(base_url_for_internal_paths, original_resource_uri_in_manifest)
+            encoded_absolute_resource_uri = encode_uri_for_sub_request(absolute_resource_uri)
+            proxied_resource_uri = f"/h_mode/ts?url={encoded_absolute_resource_uri}&{encoded_h_params_query_string}"
+            line_content = proxied_resource_uri 
+        modified_m3u8_lines.append(line_content)
+    return "\n".join(modified_m3u8_lines)
+
 @dl.route('/proxy/m3u')
 def proxy_m3u():
     encoded_main_url_param = request.args.get('url', '').strip()
@@ -131,43 +155,22 @@ def proxy_m3u():
             
             response = requests.get(actual_target_m3u_url, headers=h_mode_headers_for_m3u_fetch, allow_redirects=True, timeout=10)
             response.raise_for_status()
-            final_url_after_redirects = response.url
-            m3u_content = response.text
+            final_url_after_redirects = response.url 
+            m3u_content_text = response.text
             
-            file_type = detect_m3u_type_for_h_mode(m3u_content)
+            file_type = detect_m3u_type_for_h_mode(m3u_content_text)
 
             if file_type == "m3u":
-                return Response(m3u_content, content_type="audio/x-mpegurl")
+                return Response(m3u_content_text, content_type="audio/x-mpegurl")
 
-            parsed_m3u_url = urlparse(final_url_after_redirects)
-            base_url_for_paths = f"{parsed_m3u_url.scheme}://{parsed_m3u_url.netloc}{parsed_m3u_url.path.rsplit('/', 1)[0]}/"
+            parsed_final_url = urlparse(final_url_after_redirects)
+            base_url_for_paths = f"{parsed_final_url.scheme}://{parsed_final_url.netloc}{parsed_final_url.path.rsplit('/', 1)[0]}/"
             
-            headers_query_for_subrequests_encoded = "&".join([
+            encoded_h_params_query_string = "&".join([
                 f"{h_key}={h_encoded_val}" for h_key, h_encoded_val in custom_h_args_from_url.items()
             ])
             
-            modified_m3u8_lines = []
-            for line_content in m3u_content.splitlines():
-                line_content = line_content.strip()
-                if line_content.startswith("#EXT-X-KEY") and 'URI="' in line_content:
-                    key_match = re.search(r'URI="([^"]+)"', line_content)
-                    if key_match:
-                        original_key_uri_in_manifest = key_match.group(1)
-                        absolute_key_uri = urljoin(base_url_for_paths, original_key_uri_in_manifest)
-                        encoded_absolute_key_uri_bytes = zlib.compress(absolute_key_uri.encode('utf-8'))
-                        encoded_absolute_key_uri = base64.urlsafe_b64encode(encoded_absolute_key_uri_bytes).decode('utf-8').rstrip('=')
-                        proxied_key_uri = f"/h_mode/key?url={encoded_absolute_key_uri}&{headers_query_for_subrequests_encoded}"
-                        line_content = line_content.replace(original_key_uri_in_manifest, proxied_key_uri)
-                elif line_content and not line_content.startswith("#"):
-                    original_resource_uri_in_manifest = line_content
-                    absolute_resource_uri = urljoin(base_url_for_paths, original_resource_uri_in_manifest)
-                    encoded_absolute_resource_uri_bytes = zlib.compress(absolute_resource_uri.encode('utf-8'))
-                    encoded_absolute_resource_uri = base64.urlsafe_b64encode(encoded_absolute_resource_uri_bytes).decode('utf-8').rstrip('=')
-                    proxied_resource_uri = f"/h_mode/ts?url={encoded_absolute_resource_uri}&{headers_query_for_subrequests_encoded}"
-                    line_content = proxied_resource_uri 
-                modified_m3u8_lines.append(line_content)
-            
-            modified_m3u8_content = "\n".join(modified_m3u8_lines)
+            modified_m3u8_content = _process_h_mode_m3u8_content(m3u_content_text, base_url_for_paths, encoded_h_params_query_string)
             return Response(modified_m3u8_content, content_type="application/vnd.apple.mpegurl")
         else:
             m3u_fetch_headers = GLOBAL_HEADERS.copy()
@@ -235,32 +238,54 @@ def h_mode_proxy_key():
 
 @dl.route('/h_mode/ts')
 def h_mode_proxy_ts():
-    encoded_ts_url_param = request.args.get('url', '').strip()
+    encoded_ts_url_param = request.args.get('url', '').strip() 
     if not encoded_ts_url_param:
         return "Error: Missing 'url' (h_mode ts)", 400
     
     try:
-        ts_url = decode_param_value(encoded_ts_url_param)
-        if not ts_url: return "Error: Decoded TS URL is empty", 400
+        actual_ts_url = decode_param_value(encoded_ts_url_param) 
+        if not actual_ts_url: return "Error: Decoded TS URL is empty", 400
 
-        headers_for_ts = {}
+        headers_for_ts_fetch = {}
+        encoded_h_params_for_sub_sub_requests_list = [] 
+
         for key, encoded_value in request.args.items():
             if key.lower().startswith("h_") and key.lower() != 'url':
-                 headers_for_ts[unquote(key[2:]).replace("_", "-")] = decode_param_value(encoded_value)
+                 headers_for_ts_fetch[unquote(key[2:]).replace("_", "-")] = decode_param_value(encoded_value)
+                 encoded_h_params_for_sub_sub_requests_list.append(f"{key}={encoded_value}")
         
-        response = requests.get(ts_url, headers=headers_for_ts, stream=True, allow_redirects=True, timeout=(5,25))
-        response.raise_for_status()
-        content_type = response.headers.get("content-type", "video/mp2t")
-        if "mpegurl" in content_type.lower():
-             pass 
-        else:
-            content_type = "video/mp2t"
+        encoded_h_params_query_string = "&".join(encoded_h_params_for_sub_sub_requests_list)
 
-        return Response(response.iter_content(chunk_size=32768), content_type=content_type)
+        response = requests.get(actual_ts_url, headers=headers_for_ts_fetch, stream=True, allow_redirects=True, timeout=(5,25))
+        response.raise_for_status()
+
+        content_type_header = response.headers.get("content-type", "").lower()
+        parsed_actual_ts_url_path = urlparse(actual_ts_url).path.lower()
+
+        is_playlist_by_content_type = "mpegurl" in content_type_header or "x-mpegurl" in content_type_header
+        is_playlist_by_extension = parsed_actual_ts_url_path.endswith((".m3u", ".m3u8"))
+        
+        is_likely_playlist = False
+        if content_type_header == "video/mp2t":
+            is_likely_playlist = False
+        elif is_playlist_by_content_type or is_playlist_by_extension:
+            is_likely_playlist = True
+        
+        if is_likely_playlist:
+            playlist_content_bytes = b"".join(response.iter_content(chunk_size=8192))
+            playlist_content_str = playlist_content_bytes.decode('utf-8', errors='ignore')
+            
+            nested_playlist_base_url_for_paths = f"{urlparse(actual_ts_url).scheme}://{urlparse(actual_ts_url).netloc}{urlparse(actual_ts_url).path.rsplit('/', 1)[0]}/"
+            
+            modified_playlist_content = _process_h_mode_m3u8_content(playlist_content_str, nested_playlist_base_url_for_paths, encoded_h_params_query_string)
+            return Response(modified_playlist_content, content_type="application/vnd.apple.mpegurl")
+        else:
+            return Response(response.iter_content(chunk_size=32768), content_type="video/mp2t")
+
     except ValueError as ve:
         return f"Error processing parameters (h_mode ts): {str(ve)}", 400
     except requests.exceptions.Timeout:
-        return f"Timeout TS (h_mode): {ts_url}", 504
+        return f"Timeout TS (h_mode): {actual_ts_url if 'actual_ts_url' in locals() else 'unknown'}", 504
     except requests.RequestException as e:
         return f"Error TS (h_mode): {str(e)}", 500
 
@@ -279,7 +304,7 @@ def keygrab_proxy_actual_key(stream_id_for_key):
         numeric_id_match = re.search(r'\d+', stream_id_for_key)
         if not numeric_id_match: raise ValueError("Invalid stream_id for key")
         numeric_id = numeric_id_match.group(0)
-        daddylive_url = f"https://daddylive.dad/stream/stream-{numeric_id}.php" # Corrected domain
+        daddylive_url = f"https://daddylive.dad/stream/stream-{numeric_id}.php"
         key_data = _fetch_key_data_internal(daddylive_url, stream_id_for_key)
         KEY_CACHE[stream_id_for_key] = {"key_data": key_data, "timestamp": time.time(), "fetching": False}
         return Response(key_data, content_type="application/octet-stream")
@@ -317,3 +342,4 @@ def keygrab_proxy_original_key_passthrough():
 if __name__ == '__main__':
     load_global_headers()
     dl.run(host="0.0.0.0", port=8888, debug=False, threaded=True)
+    
