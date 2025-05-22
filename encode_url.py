@@ -2,10 +2,17 @@ import urllib.parse
 import argparse
 import base64
 import zlib
+import ipaddress
 
-PROXY_PREFIX = "http://127.0.0.1:8888/proxy/m3u?url="
+def valid_ip(ip_string):
+    try:
+        ipaddress.ip_address(ip_string)
+        return ip_string
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"'{ip_string}' is not a valid IP address.")
 
-def smart_encode_url_for_proxy_compress_base64(target_url, h_referer_val=None, h_origin_val=None, h_user_agent_val=None):
+def smart_encode_url_for_proxy_compress_base64(target_url, proxy_host_ip="127.0.0.1", h_referer_val=None, h_origin_val=None, h_user_agent_val=None):
+    current_proxy_prefix = f"http://{proxy_host_ip}:8888/proxy/m3u?url="
     parsed_target_url = urllib.parse.urlparse(target_url)
     
     target_url_for_proxy_value = urllib.parse.urlunsplit((
@@ -21,7 +28,7 @@ def smart_encode_url_for_proxy_compress_base64(target_url, h_referer_val=None, h
     encoded_target_url_value_bytes = base64.urlsafe_b64encode(compressed_target_url_bytes)
     encoded_target_url_value = encoded_target_url_value_bytes.decode('utf-8').rstrip('=')
     
-    final_url = f"{PROXY_PREFIX}{encoded_target_url_value}"
+    final_url = f"{current_proxy_prefix}{encoded_target_url_value}"
     
     h_params_to_process = {}
     if h_referer_val:
@@ -42,9 +49,15 @@ def smart_encode_url_for_proxy_compress_base64(target_url, h_referer_val=None, h
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Compresses (zlib) and URL-safe Base64 encodes a target URL and specified h_ parameters for a proxy structure, then adds a prefix."
+        description="Compresses (zlib) and URL-safe Base64 encodes a target URL and specified h_ parameters for a proxy structure, then adds a prefix with a configurable host IP."
     )
     parser.add_argument("target_url", help="The target web URL to encode (e.g., 'https://player.test/mono.m3u8?md5=12345').")
+    parser.add_argument(
+        "--proxy_host",
+        default="127.0.0.1",
+        type=valid_ip,
+        help="The host IP address for the proxy prefix (default: 127.0.0.1)."
+    )
     parser.add_argument(
         "--h_referer",
         help="Value for the h_referer header for the proxy."
@@ -62,8 +75,10 @@ if __name__ == "__main__":
     
     final_url_result = smart_encode_url_for_proxy_compress_base64(
         args.target_url,
+        proxy_host_ip=args.proxy_host,
         h_referer_val=args.h_referer,
         h_origin_val=args.h_origin,
         h_user_agent_val=args.h_user_agent
     )
     print(final_url_result)
+    
