@@ -16,8 +16,8 @@ HEADERS_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'he
 
 APP_PY_STYLE_DEFAULT_HEADERS = {
     "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/33.0 Mobile/15E148 Safari/605.1.15",
-    "Referer": "https://vavoo.to/",
-    "Origin": "https://vavoo.to/"
+    "Referer": "https://google.com/",
+    "Origin": "https://google.com"
 }
 
 def decode_param_value(encoded_value_str):
