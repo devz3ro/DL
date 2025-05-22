@@ -4,13 +4,20 @@ import os
 import re
 import base64
 import zlib
+import ipaddress
 
-PROXY_PREFIX = "http://127.0.0.1:8888/proxy/m3u?url="
+def valid_ip(ip_string):
+    try:
+        ipaddress.ip_address(ip_string)
+        return ip_string
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"'{ip_string}' is not a valid IP address.")
 
-def smart_encode_url_for_proxy_compress_base64(target_url, h_referer_val=None, h_origin_val=None, h_user_agent_val=None):
+def smart_encode_url_for_proxy_compress_base64(target_url, proxy_host_ip="127.0.0.1", h_referer_val=None, h_origin_val=None, h_user_agent_val=None):
     if not target_url or not target_url.strip():
         return ""
-        
+    
+    current_proxy_prefix = f"http://{proxy_host_ip}:8888/proxy/m3u?url="
     parsed_target_url = urllib.parse.urlparse(target_url)
     
     target_url_for_proxy_value = urllib.parse.urlunsplit((
@@ -26,7 +33,7 @@ def smart_encode_url_for_proxy_compress_base64(target_url, h_referer_val=None, h
     encoded_target_url_value_bytes = base64.urlsafe_b64encode(compressed_target_url_bytes)
     encoded_target_url_value = encoded_target_url_value_bytes.decode('utf-8').rstrip('=')
     
-    final_url = f"{PROXY_PREFIX}{encoded_target_url_value}"
+    final_url = f"{current_proxy_prefix}{encoded_target_url_value}"
     
     h_params_to_process = {}
     if h_referer_val:
@@ -45,7 +52,7 @@ def smart_encode_url_for_proxy_compress_base64(target_url, h_referer_val=None, h
             
     return final_url
 
-def process_m3u8_file(input_filepath, output_filepath, cli_h_referer=None, cli_h_origin=None, cli_h_user_agent=None):
+def process_m3u8_file(input_filepath, output_filepath, proxy_host_ip="127.0.0.1", cli_h_referer=None, cli_h_origin=None, cli_h_user_agent=None):
     lines_processed = 0
     urls_modified = 0
 
@@ -72,7 +79,7 @@ def process_m3u8_file(input_filepath, output_filepath, cli_h_referer=None, cli_h
 
                         if original_uri.strip():
                             new_uri = smart_encode_url_for_proxy_compress_base64(
-                                original_uri, cli_h_referer, cli_h_origin, cli_h_user_agent
+                                original_uri, proxy_host_ip, cli_h_referer, cli_h_origin, cli_h_user_agent
                             )
                             modified_line_content = f"{pre_uri_part}{new_uri}{post_uri_part}\n"
                             urls_modified += 1
@@ -87,7 +94,7 @@ def process_m3u8_file(input_filepath, output_filepath, cli_h_referer=None, cli_h
                         original_uri = uri_match.group(1)
                         if original_uri.strip():
                             new_uri = smart_encode_url_for_proxy_compress_base64(
-                                original_uri, cli_h_referer, cli_h_origin, cli_h_user_agent
+                                original_uri, proxy_host_ip, cli_h_referer, cli_h_origin, cli_h_user_agent
                             )
                             modified_line_content = stripped_line.replace(original_uri, new_uri) + '\n'
                             urls_modified += 1
@@ -101,7 +108,7 @@ def process_m3u8_file(input_filepath, output_filepath, cli_h_referer=None, cli_h
                     modified_line_content = line
                 else:
                     new_url = smart_encode_url_for_proxy_compress_base64(
-                        stripped_line, cli_h_referer, cli_h_origin, cli_h_user_agent
+                        stripped_line, proxy_host_ip, cli_h_referer, cli_h_origin, cli_h_user_agent
                     )
                     if new_url:
                         modified_line_content = new_url + '\n'
@@ -125,12 +132,18 @@ def process_m3u8_file(input_filepath, output_filepath, cli_h_referer=None, cli_h
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Processes an M3U8 file to compress, URL-safe Base64 encode, and prefix URLs/URIs within it, optionally adding h_ parameters.",
+        description="Processes an M3U8 file to compress, URL-safe Base64 encode, and prefix URLs/URIs within it, optionally adding h_ parameters and specifying proxy host.",
         formatter_class=argparse.RawTextHelpFormatter
     )
     parser.add_argument(
         "input_file",
         help="The path to the input M3U8 file (e.g., playlist.m3u8)."
+    )
+    parser.add_argument(
+        "--proxy_host",
+        default="127.0.0.1",
+        type=valid_ip,
+        help="The host IP address for the proxy prefix (default: 127.0.0.1)."
     )
     parser.add_argument(
         "--h_referer",
@@ -158,6 +171,7 @@ if __name__ == "__main__":
         process_m3u8_file(
             input_m3u8_file, 
             output_m3u8_file,
+            proxy_host_ip=args.proxy_host,
             cli_h_referer=args.h_referer,
             cli_h_origin=args.h_origin,
             cli_h_user_agent=args.h_user_agent
