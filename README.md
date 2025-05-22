@@ -7,6 +7,8 @@ supply correct headers in headers.json file (referrer and origin)
 *note* the headers.json file is *only* needed for a playlist that contains only "dl" mono urls.  
 If you are using another provider, define the headers using the --h_referer, --h_origin, and --h_user_agent as shown in the examples below.  
 
+If you only have "dl" mono urls in your playlist, do not use the --h_referer, --h_origin, and --h_user_agent options when encoding your playlist. These values will be read from the headers.json file.
+
 (2 separate scripts provided to encode urls)  
 
 -----------------------------------------------------------------------------------------------------------------------------------------------  
