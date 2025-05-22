@@ -4,6 +4,9 @@ pip3 install Flask requests beautifulsoup4 gunicorn
 
 supply correct headers in headers.json file (referrer and origin)
 
+*note* the headers.json file is *only* needed for a playlist that contains only "dl" mono urls.  
+If you are using another provider, define the headers using the --h_referer, --h_origin, and --h_user_agent as shown in the examples below.  
+
 (2 separate scripts provided to encode urls)  
 
 -----------------------------------------------------------------------------------------------------------------------------------------------  
