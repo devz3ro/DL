@@ -16,8 +16,8 @@ HEADERS_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'he
 
 APP_PY_STYLE_DEFAULT_HEADERS = {
     "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/33.0 Mobile/15E148 Safari/605.1.15",
-    "Referer": "https://google.com/",
-    "Origin": "https://google.com"
+    "Referer": "https://vavoo.to/",
+    "Origin": "https://vavoo.to/"
 }
 
 def decode_param_value(encoded_value_str):
@@ -279,7 +279,7 @@ def keygrab_proxy_actual_key(stream_id_for_key):
         numeric_id_match = re.search(r'\d+', stream_id_for_key)
         if not numeric_id_match: raise ValueError("Invalid stream_id for key")
         numeric_id = numeric_id_match.group(0)
-        daddylive_url = f"https://daddylive.watch/stream/stream-{numeric_id}.php"
+        daddylive_url = f"https://daddylive.dad/stream/stream-{numeric_id}.php" # Corrected domain
         key_data = _fetch_key_data_internal(daddylive_url, stream_id_for_key)
         KEY_CACHE[stream_id_for_key] = {"key_data": key_data, "timestamp": time.time(), "fetching": False}
         return Response(key_data, content_type="application/octet-stream")
