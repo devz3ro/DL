@@ -92,7 +92,7 @@ def _fetch_key_data_internal(daddylive_stream_url, stream_id_for_key_logging):
     session.headers.update({'Origin': f"{parsed_embed_url_obj.scheme}://{parsed_embed_url_obj.netloc}",'Referer': embed_url,'sec-ch-ua': '"Not.A/Brand";v="99", "Chromium";v="136"','sec-ch-ua-mobile': '?0', 'sec-ch-ua-platform': '"macOS"','sec-fetch-dest': 'empty', 'sec-fetch-mode': 'cors', 'sec-fetch-site': 'cross-site'})
     auth_url = f"https://top2new.newkso.ru/auth.php?channel_id={channel_key_val}&ts={auth_ts}&rnd={auth_rnd}&sig={auth_sig}"
     session.get(auth_url, timeout=15).raise_for_status()
-    lookup_url = f"https://alldownplay.xyz/server_lookup.php?channel_id={channel_key_val}"
+    lookup_url = f"https://allupplay.xyz/server_lookup.php?channel_id={channel_key_val}"
     session.get(lookup_url, timeout=15).raise_for_status()
     key_fetch_url = f"https://key2.keylocking.ru/wmsxx.php?test=true&name={channel_key_val}&number=1"
     response_key = session.get(key_fetch_url, timeout=15)
