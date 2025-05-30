@@ -62,6 +62,6 @@ http://127.0.0.1:8888/proxy/m3u?url=eJzLKCkpKLbS10_Pz0_PSdVLzs_VBwBHIwbl&h_refer
 
 Run app:
 
-gunicorn --workers 4 --bind 0.0.0.0:8888 dl:dl
+gunicorn --worker-class gthread --workers 1 --threads 4 --preload --bind 0.0.0.0:8888 dl:dl
 
 enjoy.
